@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Center Settings — Dialpad Admin</title>
+  <style>
+    :root {
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      --purple-400: #7C52FF;
+      --purple-450: #6538F1;
+      --purple-50:  #F5F2FF;
+      --purple-100: #EDE7FF;
+      --black-100:  #F5F5F5;
+      --black-200:  #EBEBEB;
+      --black-300:  #D4D4D4;
+      --black-400:  #AAAAAA;
+      --black-500:  #808080;
+      --black-900:  #1C1C1C;
+      --fg-primary:   #1C1C1C;
+      --fg-secondary: #3A3A3A;
+      --fg-tertiary:  #535353;
+      --fg-muted:     #808080;
+      --fg-link:      #7C52FF;
+      --fg-critical:  #D90A45;
+      --fg-success:   #1C8847;
+      --surface:      #FFFFFF;
+      --surface-soft: #F9F9F9;
+      --border:       rgba(28,28,28,0.11);
+      --border-md:    rgba(28,28,28,0.18);
+      --border-focus: #4AA9EA;
+      --border-err:   #D90A45;
+      --topbar-h:     50px;
+      --rail-w:       56px;
+      --nav-w:        224px;
+      --sidebar-w:    280px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--fg-primary);
+      background: var(--surface);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* ═══ TOPBAR ═══ */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--topbar-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      z-index: 50;
+    }
+
+    .topbar-brand {
+      width: var(--sidebar-w);
+      padding: 0 12px;
+      border-right: 1px solid var(--border);
+      height: 100%;
+      display: flex; align-items: center;
+      flex-shrink: 0;
+    }
+
+    .org-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 10px;
+      border: 1px solid var(--border-md);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13.5px; font-weight: 500;
+      color: var(--fg-primary);
+      background: var(--surface);
+      white-space: nowrap;
+      transition: background 0.1s;
+    }
+    .org-btn:hover { background: var(--black-100); }
+
+    .topbar-center {
+      flex: 1;
+      height: 100%;
+      display: flex; align-items: center;
+      padding: 0 20px;
+      min-width: 0;
+    }
+
+    .breadcrumb {
+      display: flex; align-items: center; flex-wrap: nowrap;
+      font-size: 10.5px; font-weight: 500;
+      letter-spacing: 0.35px; text-transform: uppercase;
+      color: var(--fg-muted);
+      overflow: hidden; white-space: nowrap;
+      gap: 3px;
+    }
+    .breadcrumb span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bc-sep { opacity: 0.45; flex-shrink: 0; }
+    .bc-last { color: var(--fg-secondary); }
+
+    .topbar-right {
+      display: flex; align-items: center; gap: 16px;
+      padding-right: 20px;
+      flex-shrink: 0;
+    }
+
+    .view-dashboard-link {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      color: var(--fg-link); text-decoration: none;
+      white-space: nowrap;
+    }
+    .view-dashboard-link:hover { text-decoration: underline; }
+    .view-dashboard-link svg { flex-shrink: 0; }
+
+    .search-box {
+      display: flex; align-items: center; gap: 7px;
+      border: 1px solid var(--border-md);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 12.5px; color: var(--fg-muted);
+      min-width: 200px; cursor: pointer;
+      transition: background 0.1s;
+    }
+    .search-box:hover { background: var(--black-100); }
+
+    /* ═══ SIDEBAR ═══ */
+    .sidebar {
+      position: fixed;
+      top: var(--topbar-h);
+      left: 0;
+      bottom: 0;
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      z-index: 40;
+      overflow: hidden;
+    }
+
+    /* Icon rail */
+    .icon-rail {
+      width: var(--rail-w);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0;
+      gap: 2px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .d-logo {
+      width: 30px; height: 30px;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+
+    .rail-btn {
+      width: 38px; height: 38px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--black-500);
+      transition: background 0.1s, color 0.1s;
+      flex-shrink: 0;
+    }
+    .rail-btn:hover { background: var(--black-100); color: var(--fg-secondary); }
+    .rail-btn.active { background: var(--black-900); color: white; }
+    .rail-btn svg { width: 18px; height: 18px; }
+
+    .rail-spacer { flex: 1; }
+
+    .rail-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: #3DAD6F;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      color: white; cursor: pointer; flex-shrink: 0;
+    }
+
+    /* Nav panel */
+    .nav-panel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 0 20px;
+    }
+    .nav-panel::-webkit-scrollbar { width: 0; }
+
+    .nav-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 14px;
+      font-size: 13.5px;
+      color: var(--fg-secondary);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .nav-row:hover { background: var(--black-100); }
+    .nav-row-left { display: flex; align-items: center; gap: 7px; }
+    .nav-row.header { font-weight: 600; color: var(--fg-primary); }
+
+    .nav-plus {
+      width: 20px; height: 20px;
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--black-400);
+      font-size: 16px; font-weight: 300; line-height: 1;
+      opacity: 0; transition: opacity 0.1s;
+      flex-shrink: 0;
+    }
+    .nav-row:hover .nav-plus { opacity: 1; }
+
+    .cc-search-wrap { padding: 4px 12px 6px; }
+    .cc-search-inner { position: relative; }
+    .cc-search {
+      width: 100%; background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px 6px 30px;
+      font-size: 12px; font-family: var(--font);
+      color: var(--fg-primary); outline: none;
+    }
+    .cc-search::placeholder { color: var(--fg-muted); }
+    .cc-search-icon {
+      position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+      color: var(--black-400); pointer-events: none;
+    }
+
+    .cc-list { padding: 2px 0 6px; }
+
+    .cc-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 14px;
+      font-size: 12.5px; color: var(--fg-secondary);
+      cursor: pointer; transition: background 0.1s;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cc-row:hover { background: var(--black-100); }
+    .cc-row.active { background: var(--purple-50); color: var(--fg-primary); font-weight: 500; }
+    .cc-row svg { width: 13px; height: 13px; flex-shrink: 0; color: var(--black-400); }
+    .cc-row.active svg { color: var(--purple-400); }
+    .cc-row .cc-name { overflow: hidden; text-overflow: ellipsis; }
+
+    .nav-divider { height: 1px; background: var(--border); margin: 6px 0; }
+
+    /* ═══ MAIN ═══ */
+    .main {
+      margin-left: var(--sidebar-w);
+      margin-top: var(--topbar-h);
+      min-height: calc(100vh - var(--topbar-h));
+      background: var(--surface);
+    }
+
+    .page { padding: 0 28px 96px; max-width: 1020px; }
+
+    /* Section */
+    .section {
+      padding: 28px 0 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section:last-child { border-bottom: none; }
+
+    .section-title {
+      font-size: 28px; font-weight: 700;
+      color: var(--fg-primary); letter-spacing: -0.4px;
+      margin-bottom: 20px;
+    }
+
+    /* Card */
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .card + .card { margin-top: 12px; }
+    .card-body { padding: 18px 20px 20px; }
+
+    .card-head-row {
+      display: flex; align-items: center; gap: 7px;
+      margin-bottom: 5px;
+    }
+    .card-title {
+      font-size: 14px; font-weight: 600;
+      color: var(--fg-primary);
+    }
+    .info-icon {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 1.5px solid var(--black-400);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 9px; font-style: italic; font-weight: 700;
+      color: var(--black-400); cursor: pointer; flex-shrink: 0;
+    }
+
+    .card-desc {
+      font-size: 13px; color: var(--fg-secondary);
+      line-height: 1.55; margin-bottom: 16px;
+      max-width: 700px;
+    }
+    .card-desc a { color: var(--fg-link); text-decoration: none; font-weight: 500; }
+    .card-desc a:hover { text-decoration: underline; }
+
+    /* Survey type radio pills */
+    .type-row {
+      display: flex; gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .type-pill {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 14px;
+      border: 1px solid var(--border-md);
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px; font-weight: 500;
+      color: var(--fg-secondary);
+      background: var(--surface);
+      transition: all 0.12s;
+      user-select: none;
+    }
+    .type-pill:hover { border-color: var(--black-500); color: var(--fg-primary); }
+    .type-pill.on {
+      border-color: var(--purple-400);
+      color: var(--purple-400);
+      background: var(--purple-50);
+    }
+
+    .radio-ring {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 1.5px solid var(--black-300); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.12s;
+    }
+    .type-pill.on .radio-ring { border-color: var(--purple-400); background: var(--purple-400); }
+    .radio-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: white; display: none;
+    }
+    .type-pill.on .radio-dot { display: block; }
+
+    /* Combobox — production-style full-width selector */
+    .combo-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+    .combo-wrap {
+      position: relative;
+      flex: 1; max-width: 560px; min-width: 220px;
+    }
+
+    .combo {
+      width: 100%;
+      display: flex; align-items: center;
+      border: 1px solid var(--border-md);
+      border-radius: 6px;
+      background: var(--surface);
+      padding: 8px 36px 8px 12px;
+      font-size: 13px; font-family: var(--font);
+      color: var(--fg-secondary);
+      cursor: pointer;
+      appearance: none; outline: none;
+      transition: border-color 0.14s;
+    }
+    .combo:hover { border-color: var(--black-400); }
+    .combo:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(74,169,234,0.18); }
+    .combo.error { border-color: var(--border-err); box-shadow: 0 0 0 3px rgba(217,10,69,0.1); }
+
+    .combo-x {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--black-400); cursor: pointer; font-size: 13px; line-height: 1;
+      width: 18px; height: 18px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.1s;
+    }
+    .combo-x:hover { background: var(--black-200); color: var(--fg-primary); }
+
+    .managed-text {
+      font-size: 12.5px; color: var(--fg-secondary);
+      white-space: nowrap;
+    }
+    .managed-text a { color: var(--fg-link); text-decoration: none; font-weight: 500; }
+    .managed-text a:hover { text-decoration: underline; }
+
+    /* Field messages */
+    .field-error {
+      display: none; align-items: center; gap: 5px;
+      font-size: 12px; color: var(--fg-critical); margin-top: 6px;
+    }
+    .field-error.show { display: flex; }
+
+    .field-hint {
+      font-size: 12.5px; color: var(--fg-tertiary);
+      margin-top: 6px;
+    }
+    .field-hint a { color: var(--fg-link); text-decoration: none; }
+    .field-hint a:hover { text-decoration: underline; }
+
+    /* Info callout */
+    .callout {
+      display: flex; gap: 9px;
+      padding: 10px 14px;
+      background: #EFF6FF; border: 1px solid #BFDBFE;
+      border-radius: 6px;
+      font-size: 12.5px; color: #1D4ED8;
+      line-height: 1.55; margin-top: 14px;
+      max-width: 620px;
+    }
+    .callout svg { flex-shrink: 0; margin-top: 1px; }
+
+    /* ═══ SAVE BAR ═══ */
+    .save-bar {
+      position: fixed; bottom: 0;
+      left: var(--sidebar-w); right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 10px 28px;
+      display: flex; align-items: center; justify-content: flex-end;
+      gap: 8px; z-index: 30;
+    }
+    .unsaved { font-size: 12px; color: var(--fg-tertiary); margin-right: 4px; display: none; }
+    .unsaved.show { display: block; }
+
+    .btn {
+      padding: 7px 18px; border-radius: 6px;
+      font-size: 13px; font-weight: 500; font-family: var(--font);
+      cursor: pointer; border: none; line-height: 1.4;
+      transition: all 0.12s;
+    }
+    .btn-ghost {
+      background: transparent; color: var(--fg-secondary);
+      border: 1px solid var(--border-md);
+    }
+    .btn-ghost:hover { background: var(--black-100); }
+    .btn-primary { background: var(--purple-400); color: white; }
+    .btn-primary:hover { background: var(--purple-450); }
+    .btn-primary:disabled { opacity: 0.5; cursor: default; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 60px; right: 20px;
+      background: var(--black-900); color: white;
+      padding: 10px 16px; border-radius: 7px;
+      font-size: 13px;
+      display: flex; align-items: center; gap: 8px;
+      transform: translateY(8px); opacity: 0;
+      transition: all 0.18s ease; pointer-events: none; z-index: 100;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-check {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--fg-success);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══ -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="org-btn">
+      Dialpadbeta
+      <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+  <div class="topbar-center">
+    <nav class="breadcrumb">
+      <span>Admin</span><span class="bc-sep"> / </span>
+      <span>Dialpad, Inc. (Beta)</span><span class="bc-sep"> / </span>
+      <span>Dialpadbeta</span><span class="bc-sep"> / </span>
+      <span>Contact Centers</span><span class="bc-sep"> / </span>
+      <span class="bc-last">Sherlaine's Contact Center</span>
+    </nav>
+  </div>
+  <div class="topbar-right">
+    <a class="view-dashboard-link" href="#">
+      <!-- activity/pulse icon matching production -->
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M1 7h2l2-4 2 8 2-6 1.5 2H13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      View Contact Center Dashboard
+    </a>
+    <div class="search-box">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5.2" cy="5.2" r="3.5" stroke="currentColor" stroke-width="1.2"/><path d="M8 8l2.5 2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Search Help Center
+    </div>
+  </div>
+</header>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <!-- Icon rail -->
+  <div class="icon-rail">
+    <!-- Dialpad logo -->
+    <svg class="d-logo" viewBox="0 0 30 30" fill="none">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#FF4D8D"/>
+          <stop offset="50%" stop-color="#C44DFF"/>
+          <stop offset="100%" stop-color="#7C52FF"/>
+        </linearGradient>
+      </defs>
+      <rect width="30" height="30" rx="7" fill="url(#g)"/>
+      <path d="M7.5 5.5h7.5a9.5 9.5 0 010 19H7.5V5.5z" fill="white"/>
+      <circle cx="15" cy="15" r="3.5" fill="url(#g)"/>
+    </svg>
+    <!-- Home -->
+    <div class="rail-btn"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7.5L9 2l7 5.5V16a.75.75 0 01-.75.75H2.75A.75.75 0 012 16V7.5z"/></svg></div>
+    <!-- Person -->
+    <div class="rail-btn"><svg viewBox="0 0 18 18" fill="currentColor"><path d="M9 2a3.75 3.75 0 100 7.5A3.75 3.75 0 009 2zm-6 13c0-3.31 2.69-6 6-6h2c3.31 0 6 2.69 6 6H3z"/></svg></div>
+    <!-- Star -->
+    <div class="rail-btn"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5l2.12 4.3 4.75.69-3.44 3.35.81 4.73L9 12.27l-4.24 2.3.81-4.73L2.13 6.5l4.75-.69L9 1.5z"/></svg></div>
+    <!-- Settings (active) -->
+    <div class="rail-btn active"><svg viewBox="0 0 18 18" fill="currentColor"><path fill-rule="evenodd" d="M9 6.25a2.75 2.75 0 100 5.5 2.75 2.75 0 000-5.5zM1.5 9a7.5 7.5 0 1115 0A7.5 7.5 0 011.5 9z" clip-rule="evenodd"/><circle cx="9" cy="9" r="1.75" fill="white"/><path d="M9 2v1.5M9 14.5V16M2 9h1.5M14.5 9H16M4.1 4.1l1.06 1.06M12.84 12.84l1.06 1.06M4.1 13.9l1.06-1.06M12.84 5.16l1.06-1.06" stroke="white" stroke-width="1.2" stroke-linecap="round" fill="none"/></svg></div>
+    <!-- Grid/reports -->
+    <div class="rail-btn"><svg viewBox="0 0 18 18" fill="currentColor"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg></div>
+    <!-- Activity/waveform -->
+    <div class="rail-btn"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1 9h3l2.5-6 3 12 2.5-7 1.5 1H17"/></svg></div>
+    <!-- Clock -->
+    <div class="rail-btn"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M9 5v4l2.5 2.5" stroke-linejoin="round"/></svg></div>
+    <!-- Trending up -->
+    <div class="rail-btn"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13l5-5 3 3 5-6"/><path d="M12 5h4v4"/></svg></div>
+    <!-- Box/cube -->
+    <div class="rail-btn"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2l7 4v6l-7 4-7-4V6l7-4z"/><path d="M9 2v6m0 0l7-4M9 8L2 4"/></svg></div>
+    <!-- Lightning/integrations -->
+    <div class="rail-btn"><svg viewBox="0 0 18 18" fill="currentColor"><path d="M10.5 2L4 10h5l-1.5 6L16 8h-5l-.5-6z"/></svg></div>
+    <div class="rail-spacer"></div>
+    <div class="rail-avatar">SL</div>
+  </div>
+
+  <!-- Nav panel -->
+  <div class="nav-panel">
+    <div class="nav-row">
+      <div class="nav-row-left">Office</div>
+    </div>
+    <div class="nav-row">
+      <div class="nav-row-left">Departments</div>
+      <span class="nav-plus">+</span>
+    </div>
+    <div class="nav-row header">
+      <div class="nav-row-left">Contact Centers</div>
+      <span class="nav-plus">+</span>
+    </div>
+
+    <div class="cc-search-wrap">
+      <div class="cc-search-inner">
+        <svg class="cc-search-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.3" stroke="currentColor" stroke-width="1.2"/><path d="M7.8 7.8l2.2 2.2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <input class="cc-search" placeholder="Find a contact center" value="" readonly>
+      </div>
+    </div>
+
+    <div class="cc-list">
+      <div class="cc-row"><svg viewBox="0 0 13 13" fill="currentColor"><path d="M2.5 2a.9.9 0 00-.9.9v.8a7 7 0 007 7h.8a.9.9 0 00.9-.9v-.8a.65.65 0 00-.46-.62l-1.3-.43a.65.65 0 00-.76.34l-.3.6A5.2 5.2 0 014.12 5.1l.6-.3a.65.65 0 00.34-.76l-.43-1.3A.65.65 0 004 2.2l-.9-.2H2.5z"/></svg><span class="cc-name">!!! 18 Digital V</span></div>
+      <div class="cc-row"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1.5" y="2.5" width="10" height="7" rx="1"/><path d="M4.5 10.5h4" stroke-linecap="round"/></svg><span class="cc-name">!!! Digital 1 Vj</span></div>
+      <div class="cc-row"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1.5" y="2.5" width="10" height="7" rx="1"/><path d="M4.5 10.5h4" stroke-linecap="round"/></svg><span class="cc-name">!!! Digital Vj 2</span></div>
+      <div class="cc-row active"><svg viewBox="0 0 13 13" fill="currentColor"><path d="M2.5 2a.9.9 0 00-.9.9v.8a7 7 0 007 7h.8a.9.9 0 00.9-.9v-.8a.65.65 0 00-.46-.62l-1.3-.43a.65.65 0 00-.76.34l-.3.6A5.2 5.2 0 014.12 5.1l.6-.3a.65.65 0 00.34-.76l-.43-1.3A.65.65 0 004 2.2l-.9-.2H2.5z"/></svg><span class="cc-name">Sherlaine's Contact Center</span></div>
+      <div class="cc-row"><svg viewBox="0 0 13 13" fill="currentColor"><path d="M2.5 2a.9.9 0 00-.9.9v.8a7 7 0 007 7h.8a.9.9 0 00.9-.9v-.8a.65.65 0 00-.46-.62l-1.3-.43a.65.65 0 00-.76.34l-.3.6A5.2 5.2 0 014.12 5.1l.6-.3a.65.65 0 00.34-.76l-.43-1.3A.65.65 0 004 2.2l-.9-.2H2.5z"/></svg><span class="cc-name">!!! test lang exp CC</span></div>
+      <div class="cc-row"><svg viewBox="0 0 13 13" fill="currentColor"><path d="M2.5 2a.9.9 0 00-.9.9v.8a7 7 0 007 7h.8a.9.9 0 00.9-.9v-.8a.65.65 0 00-.46-.62l-1.3-.43a.65.65 0 00-.76.34l-.3.6A5.2 5.2 0 014.12 5.1l.6-.3a.65.65 0 00.34-.76l-.43-1.3A.65.65 0 004 2.2l-.9-.2H2.5z"/></svg><span class="cc-name">!!!!!!!!!!AAAAAABBBBBCCCCC</span></div>
+      <div class="cc-row"><svg viewBox="0 0 13 13" fill="currentColor"><path d="M2.5 2a.9.9 0 00-.9.9v.8a7 7 0 007 7h.8a.9.9 0 00.9-.9v-.8a.65.65 0 00-.46-.62l-1.3-.43a.65.65 0 00-.76.34l-.3.6A5.2 5.2 0 014.12 5.1l.6-.3a.65.65 0 00.34-.76l-.43-1.3A.65.65 0 004 2.2l-.9-.2H2.5z"/></svg><span class="cc-name">!!!!!!@%new cc</span></div>
+      <div class="cc-row"><svg viewBox="0 0 13 13" fill="currentColor"><path d="M2.5 2a.9.9 0 00-.9.9v.8a7 7 0 007 7h.8a.9.9 0 00.9-.9v-.8a.65.65 0 00-.46-.62l-1.3-.43a.65.65 0 00-.76.34l-.3.6A5.2 5.2 0 014.12 5.1l.6-.3a.65.65 0 00.34-.76l-.43-1.3A.65.65 0 004 2.2l-.9-.2H2.5z"/></svg><span class="cc-name">!!!!AAAAAAAAKrizia</span></div>
+      <div class="cc-row"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1.5" y="2.5" width="10" height="7" rx="1"/><path d="M4.5 10.5h4" stroke-linecap="round"/></svg><span class="cc-name">!!!1 8 Digital</span></div>
+      <div class="cc-row"><svg viewBox="0 0 13 13" fill="currentColor"><path d="M2.5 2a.9.9 0 00-.9.9v.8a7 7 0 007 7h.8a.9.9 0 00.9-.9v-.8a.65.65 0 00-.46-.62l-1.3-.43a.65.65 0 00-.76.34l-.3.6A5.2 5.2 0 014.12 5.1l.6-.3a.65.65 0 00.34-.76l-.43-1.3A.65.65 0 004 2.2l-.9-.2H2.5z"/></svg><span class="cc-name">!!!AA VJ</span></div>
+      <div class="cc-row" style="color:var(--fg-muted);font-style:italic;font-size:11px;">•••</div>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-row"><div class="nav-row-left">Geo. Routing</div><span class="nav-plus">+</span></div>
+    <div class="nav-row"><div class="nav-row-left">Coaching Teams</div><span class="nav-plus">+</span></div>
+    <div class="nav-row"><div class="nav-row-left">Channels &amp; Workflows</div></div>
+    <div class="nav-row"><div class="nav-row-left">AI Scorecards</div></div>
+    <div class="nav-row"><div class="nav-row-left">Billing</div></div>
+    <div class="nav-row"><div class="nav-row-left">Dialpad AI</div></div>
+    <div class="nav-row"><div class="nav-row-left">Privacy and Legal</div></div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+  <div class="page">
+
+    <!-- AI Settings -->
+    <div class="section">
+      <h2 class="section-title">AI Settings</h2>
+    </div>
+
+    <!-- Integrations -->
+    <div class="section">
+      <h2 class="section-title">Integrations</h2>
+    </div>
+
+    <!-- Post call survey -->
+    <div class="section">
+      <h2 class="section-title">Post call survey</h2>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="card-head-row">
+            <span class="card-title">Post-Call Survey</span>
+          </div>
+          <p class="card-desc">
+            Route customers to a post-call survey when their call ends naturally. Choose between <strong>SMS/DTMF</strong> or an <strong>IVR Workflow</strong>.
+          </p>
+
+          <!-- Survey type selector -->
+          <div class="type-row">
+            <div class="type-pill on" id="opt-sms" onclick="selectType('sms')">
+              <div class="radio-ring"><div class="radio-dot"></div></div>
+              SMS/DTMF
+            </div>
+            <div class="type-pill" id="opt-ivr" onclick="selectType('ivr')">
+              <div class="radio-ring"><div class="radio-dot"></div></div>
+              IVR Workflow
+            </div>
+          </div>
+
+          <!-- SMS/DTMF panel -->
+          <div id="panel-sms">
+            <div class="combo-row">
+              <div class="combo-wrap">
+                <select class="combo" id="sms-select" onchange="markDirty()">
+                  <option>sherlaine's dtmf survey</option>
+                  <option>Post-call NPS survey</option>
+                  <option>Pharmacy satisfaction</option>
+                </select>
+                <span class="combo-x" onclick="clearSmsSelect()" title="Clear">✕</span>
+              </div>
+              <span class="managed-text">This list is managed by the <a href="#">office admin</a>.</span>
+            </div>
+          </div>
+
+          <!-- IVR Workflow panel -->
+          <div id="panel-ivr" style="display:none;">
+            <div class="combo-row">
+              <div class="combo-wrap">
+                <select class="combo" id="ivr-select" onchange="clearError()">
+                  <option value="" disabled selected>Select a workflow…</option>
+                  <option value="pharmacy">Post-Call Survey — Pharmacy</option>
+                  <option value="nps">NPS Survey Flow</option>
+                  <option value="callback">Callback Offer IVR</option>
+                  <option value="escalation">Escalation Routing</option>
+                  <option value="loyalty">Loyalty &amp; Retention Flow</option>
+                </select>
+                <span class="combo-x" onclick="clearIvrSelect()" title="Clear">✕</span>
+              </div>
+              <span class="managed-text">Only IVR workflows in your account are shown.</span>
+            </div>
+            <div class="field-error" id="ivr-error">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path fill-rule="evenodd" d="M6 0a6 6 0 100 12A6 6 0 006 0zm.75 8.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM6.75 4a.75.75 0 00-1.5 0v3a.75.75 0 001.5 0V4z" clip-rule="evenodd"/></svg>
+              Select an IVR Workflow before saving.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard and alerts -->
+    <div class="section">
+      <h2 class="section-title">Dashboard and alerts</h2>
+    </div>
+
+    <!-- Power Dialer -->
+    <div class="section">
+      <h2 class="section-title">Power Dialer</h2>
+    </div>
+
+    <!-- Advanced settings -->
+    <div class="section">
+      <h2 class="section-title">Advanced settings</h2>
+    </div>
+
+  </div>
+</main>
+
+<!-- Save bar -->
+<div class="save-bar">
+  <span class="unsaved" id="unsaved">Unsaved changes</span>
+  <button class="btn btn-ghost" onclick="cancelChanges()">Cancel</button>
+  <button class="btn btn-primary" id="save-btn" onclick="save()">Save changes</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-check">
+    <svg width="8" height="7" viewBox="0 0 8 7" fill="none"><path d="M1 3.5l2 2L7 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  Settings saved
+</div>
+
+<script>
+  let current = 'sms';
+
+  function selectType(type) {
+    current = type;
+    document.getElementById('opt-sms').classList.toggle('on', type === 'sms');
+    document.getElementById('opt-ivr').classList.toggle('on', type === 'ivr');
+    document.getElementById('panel-sms').style.display = type === 'sms' ? '' : 'none';
+    document.getElementById('panel-ivr').style.display = type === 'ivr' ? '' : 'none';
+    clearError();
+    markDirty();
+  }
+
+  function clearSmsSelect() {
+    // Reset to first option
+    const s = document.getElementById('sms-select');
+    s.selectedIndex = 0;
+    markDirty();
+  }
+
+  function clearIvrSelect() {
+    const s = document.getElementById('ivr-select');
+    s.value = '';
+    clearError();
+  }
+
+  function clearError() {
+    document.getElementById('ivr-error').classList.remove('show');
+    document.getElementById('ivr-select').classList.remove('error');
+  }
+
+  function markDirty() {
+    document.getElementById('unsaved').classList.add('show');
+  }
+
+  function save() {
+    if (current === 'ivr' && !document.getElementById('ivr-select').value) {
+      document.getElementById('ivr-select').classList.add('error');
+      document.getElementById('ivr-error').classList.add('show');
+      document.getElementById('ivr-select').focus();
+      return;
+    }
+    const btn = document.getElementById('save-btn');
+    btn.textContent = 'Saving…'; btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = 'Save changes'; btn.disabled = false;
+      document.getElementById('unsaved').classList.remove('show');
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }, 500);
+  }
+
+  function cancelChanges() {
+    selectType('sms');
+    document.getElementById('ivr-select').value = '';
+    document.getElementById('unsaved').classList.remove('show');
+  }
+</script>
+</body>
+</html>
